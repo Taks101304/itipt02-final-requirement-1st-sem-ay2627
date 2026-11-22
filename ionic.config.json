@@ -1,0 +1,7 @@
+{
+  "name": "Final_Requirements",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
