@@ -1,0 +1,100 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Lost and Found - User Portal</ion-title>
+    <ion-buttons slot="end">
+      <ion-button color="danger" (click)="logout()">Log Out</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{ isEditing ? 'Edit Lost Item' : 'Report New Lost Item' }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-input label="Item Name" labelPlacement="floating" [(ngModel)]="newItem.name" placeholder="e.g., Black Wallet"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Upload Image from Device</ion-label>
+        <input type="file" accept="image/*" (change)="onFileSelected($event)" style="margin-top: 10px; width: 100%;" />
+      </ion-item>
+
+      <ion-item>
+        <ion-input label="Location" labelPlacement="floating" [(ngModel)]="newItem.location" placeholder="e.g., Barangay Hall Plaza"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input label="Contact Details" labelPlacement="floating" [(ngModel)]="newItem.contacts" placeholder="e.g., 0917-123-4567 or email"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-textarea label="Description" labelPlacement="floating" [(ngModel)]="newItem.description" placeholder="Provide extra details..."></ion-textarea>
+      </ion-item>
+
+      <div class="ion-margin-top">
+        <ion-button expand="block" color="success" (click)="saveItem()">
+          {{ isEditing ? 'Update Item' : 'Submit Report' }}
+        </ion-button>
+        <ion-button *ngIf="isEditing" expand="block" color="medium" fill="outline" class="ion-margin-top" (click)="cancelEdit()">
+          Cancel
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="selectedItem" color="light" style="border: 2px solid var(--ion-color-primary);">
+    <img *ngIf="selectedItem.Image" [src]="selectedItem.Image" alt="Full Item Image" style="width: 100%; height: auto; object-fit: contain;" />
+    
+    <ion-card-header>
+      <ion-card-subtitle>Item ID: #{{ selectedItem.Item_Id }} | Status: {{ selectedItem.Status || 'Missing' }}</ion-card-subtitle>
+      <ion-card-title>{{ selectedItem.Name }}</ion-card-title>
+    </ion-card-header>
+    
+    <ion-card-content>
+      <p><strong>Location Found/Lost:</strong> {{ selectedItem.Location }}</p>
+      <p><strong>Contact Details:</strong> {{ selectedItem.Contacts || 'Not provided' }}</p>
+      <p class="ion-margin-top"><strong>Full Description:</strong></p>
+      <p>{{ selectedItem.Description || 'No description provided.' }}</p>
+
+      <ion-button expand="block" color="medium" class="ion-margin-top" (click)="closeDetails()">
+        Close Details
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <h2 class="ion-margin-top">Reported Items List</h2>
+  
+  <ion-searchbar 
+    [(ngModel)]="searchTerm" 
+    placeholder="Search by name, location, contact, or description..." 
+    animated="true">
+  </ion-searchbar>
+
+  <div *ngIf="filteredItems.length === 0" class="ion-text-center ion-padding">
+    <p>{{ items.length === 0 ? 'No lost items recorded yet.' : 'No items match your search.' }}</p>
+  </div>
+
+  <ion-card *ngFor="let item of filteredItems" (click)="viewItem(item)" style="cursor: pointer;">
+    <img *ngIf="item.Image" [src]="item.Image" alt="Item Image" style="width: 100%; height: 180px; object-fit: cover;" />
+    
+    <ion-card-header>
+      <ion-card-subtitle>ID: #{{ item.Item_Id }} | Status: {{ item.Status || 'Missing' }}</ion-card-subtitle>
+      <ion-card-title>{{ item.Name }}</ion-card-title>
+    </ion-card-header>
+    
+    <ion-card-content>
+      <p><strong>Location:</strong> {{ item.Location }}</p>
+      <p><strong>Contact Details:</strong> {{ item.Contacts || 'None' }}</p>
+      <p><strong>Description:</strong> {{ item.Description || 'None' }}</p>
+
+      <div class="ion-margin-top">
+        <ion-button size="small" color="primary" (click)="editItem(item, $event)">Edit</ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+</ion-content>
