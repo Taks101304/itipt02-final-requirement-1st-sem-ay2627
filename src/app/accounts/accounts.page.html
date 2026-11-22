@@ -1,0 +1,194 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Accounts (Admin)</ion-title>
+    <ion-buttons slot="end">
+      <ion-button color="tertiary" (click)="toggleArchiveCard()">Archive</ion-button>
+      <ion-button color="primary" (click)="toggleAccountsCard()">Accounts</ion-button>
+      <ion-button color="danger" (click)="logout()">Log Out</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  
+  <ion-card *ngIf="showArchiveCard" color="light" style="border: 2px solid var(--ion-color-tertiary);">
+    <ion-card-header>
+      <ion-card-title>Deleted Items Archive</ion-card-title>
+      <ion-card-subtitle>View claim status, restore items, or permanently delete archived records</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <div *ngIf="archivedItems.length === 0">
+        <p>No archived items found.</p>
+      </div>
+
+      <ion-card *ngFor="let arch of archivedItems" style="margin: 10px 0;">
+        <img *ngIf="arch.Image" [src]="arch.Image" alt="Archived Item Image" style="width: 100%; height: 140px; object-fit: cover;" />
+        <ion-card-header>
+          <ion-card-subtitle>
+            ID: #{{ arch.Item_Id }} | Status: {{ arch.Status || 'Missing' }} |
+            <strong [style.color]="arch.IsClaimed ? 'var(--ion-color-success)' : 'var(--ion-color-warning)'">
+              {{ arch.IsClaimed ? 'Claimed' : 'Unclaimed' }}
+            </strong>
+          </ion-card-subtitle>
+          <ion-card-title>{{ arch.Name }}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <p><strong>Location:</strong> {{ arch.Location }}</p>
+          <p><strong>Contact Details:</strong> {{ arch.Contacts || 'None' }}</p>
+          <p><strong>Description:</strong> {{ arch.Description || 'None' }}</p>
+          <div class="ion-margin-top" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <ion-button size="small" color="success" (click)="restoreItem(arch.Item_Id)">
+              Restore Item
+            </ion-button>
+            <ion-button size="small" color="danger" (click)="permanentDeleteItem(arch.Item_Id, arch.Name)">
+              Delete Permanently
+            </ion-button>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-button expand="block" color="medium" class="ion-margin-top" (click)="toggleArchiveCard()">
+        Close Archive View
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="showAccountsCard" color="light" style="border: 2px solid var(--ion-color-primary);">
+    <ion-card-header>
+      <ion-card-title>Registered Accounts Management</ion-card-title>
+      <ion-card-subtitle>Check box to grant or revoke Admin status</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <div *ngIf="accountsList.length === 0">
+        <p>No accounts found.</p>
+      </div>
+
+      <ion-item *ngFor="let acc of accountsList">
+        <ion-label>
+          <h2><strong>{{ acc.Email }}</strong> <span *ngIf="acc.Account_Id === currentAdminId" style="color: gray; font-size: 0.8em;">(You)</span></h2>
+          <p>Admin Status: {{ acc.IsAdmin ? 'True (Admin)' : 'False (User)' }}</p>
+        </ion-label>
+        <ion-checkbox 
+          slot="end" 
+          [checked]="acc.IsAdmin" 
+          [disabled]="acc.Account_Id === currentAdminId"
+          (ionChange)="onAdminStatusChange(acc, $event)">
+        </ion-checkbox>
+      </ion-item>
+
+      <ion-button expand="block" color="medium" class="ion-margin-top" (click)="toggleAccountsCard()">
+        Close Accounts View
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{ isEditing ? 'Edit Lost Item' : 'Add New Lost Item' }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-input label="Item Name" labelPlacement="floating" [(ngModel)]="newItem.name" placeholder="e.g., Black Wallet"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Upload Image from Device</ion-label>
+        <input type="file" accept="image/*" (change)="onFileSelected($event)" style="margin-top: 10px; width: 100%;" />
+      </ion-item>
+
+      <ion-item>
+        <ion-input label="Location" labelPlacement="floating" [(ngModel)]="newItem.location" placeholder="e.g., Barangay Hall Plaza"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input label="Contact Details" labelPlacement="floating" [(ngModel)]="newItem.contacts" placeholder="e.g., 0917-123-4567 or email"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-select label="Status" labelPlacement="floating" [(ngModel)]="newItem.status">
+          <ion-select-option value="Missing">Missing</ion-select-option>
+          <ion-select-option value="Found">Found</ion-select-option>
+          <ion-select-option value="Claimed">Claimed</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item>
+        <ion-textarea label="Description" labelPlacement="floating" [(ngModel)]="newItem.description" placeholder="Provide extra details..."></ion-textarea>
+      </ion-item>
+
+      <div class="ion-margin-top">
+        <ion-button expand="block" color="success" (click)="saveItem()">
+          {{ isEditing ? 'Update Item' : 'Add Item' }}
+        </ion-button>
+        <ion-button *ngIf="isEditing" expand="block" color="medium" fill="outline" class="ion-margin-top" (click)="cancelEdit()">
+          Cancel
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="selectedItem" color="light" style="border: 2px solid var(--ion-color-primary);">
+    <img *ngIf="selectedItem.Image" [src]="selectedItem.Image" alt="Full Item Image" style="width: 100%; height: auto; object-fit: contain;" />
+    
+    <ion-card-header>
+      <ion-card-subtitle>Item ID: #{{ selectedItem.Item_Id }} | Status: {{ selectedItem.Status || 'Missing' }}</ion-card-subtitle>
+      <ion-card-title>{{ selectedItem.Name }}</ion-card-title>
+    </ion-card-header>
+    
+    <ion-card-content>
+      <p><strong>Location Found/Lost:</strong> {{ selectedItem.Location }}</p>
+      <p><strong>Contact Details:</strong> {{ selectedItem.Contacts || 'Not provided' }}</p>
+      <p class="ion-margin-top"><strong>Full Description:</strong></p>
+      <p>{{ selectedItem.Description || 'No description provided.' }}</p>
+
+      <ion-button expand="block" color="medium" class="ion-margin-top" (click)="closeDetails()">
+        Close Details
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <h2 class="ion-margin-top">Reported Items List</h2>
+  
+  <ion-searchbar 
+    [(ngModel)]="searchTerm" 
+    placeholder="Search by name, location, contact, or description..." 
+    animated="true">
+  </ion-searchbar>
+
+  <div *ngIf="filteredItems.length === 0" class="ion-text-center ion-padding">
+    <p>{{ items.length === 0 ? 'No lost items recorded yet.' : 'No items match your search.' }}</p>
+  </div>
+
+  <ion-card *ngFor="let item of filteredItems" (click)="viewItem(item)" style="cursor: pointer;">
+    <img *ngIf="item.Image" [src]="item.Image" alt="Item Image" style="width: 100%; height: 180px; object-fit: cover;" />
+    
+    <ion-card-header>
+      <ion-card-subtitle>ID: #{{ item.Item_Id }} | Status: {{ item.Status || 'Missing' }}</ion-card-subtitle>
+      <ion-card-title>{{ item.Name }}</ion-card-title>
+    </ion-card-header>
+    
+    <ion-card-content>
+      <p><strong>Location:</strong> {{ item.Location }}</p>
+      <p><strong>Contact Details:</strong> {{ item.Contacts || 'None' }}</p>
+      <p><strong>Description:</strong> {{ item.Description || 'None' }}</p>
+
+      <ion-item lines="none" (click)="$event.stopPropagation()">
+        <ion-select
+          label="Change Status"
+          labelPlacement="stacked"
+          [value]="item.Status || 'Missing'"
+          (ionChange)="updateItemStatus(item, $event)">
+          <ion-select-option value="Missing">Missing</ion-select-option>
+          <ion-select-option value="Found">Found</ion-select-option>
+          <ion-select-option value="Claimed">Claimed</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <div class="ion-margin-top" style="display: flex; gap: 10px;">
+        <ion-button size="small" color="primary" (click)="editItem(item, $event)">Edit</ion-button>
+        <ion-button size="small" color="danger" (click)="deleteItem(item.Item_Id, $event)">Delete</ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+</ion-content>
