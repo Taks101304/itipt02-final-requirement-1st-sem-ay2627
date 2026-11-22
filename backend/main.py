@@ -783,3 +783,4 @@ def permanent_delete_archived_item(item_id: int):
             cursor.close()
         if db:
             db.close()
+            
