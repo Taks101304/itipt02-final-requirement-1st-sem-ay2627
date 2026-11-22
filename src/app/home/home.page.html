@@ -1,21 +1,56 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
-    <ion-title> Blank </ion-title>
+    <ion-title> Lost and Found </ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="ion-padding">
+  <h1 id="A">Barangay Lost & Found</h1>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>
-      Start with Ionic
-      <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a>
+  <div *ngIf="errorMessage" class="ion-padding-vertical" style="color: var(--ion-color-danger, red);">
+    <p><strong>{{ errorMessage }}</strong></p>
+  </div>
+  <div *ngIf="successMessage" class="ion-padding-vertical" style="color: var(--ion-color-success, green);">
+    <p><strong>{{ successMessage }}</strong></p>
+  </div>
+
+  <ion-item>
+    <ion-input 
+      label="Email" 
+      labelPlacement="floating" 
+      type="text" 
+      placeholder="Email" 
+      [(ngModel)]="email">
+    </ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-input 
+      label="Password" 
+      labelPlacement="floating" 
+      [type]="showPassword ? 'text' : 'password'" 
+      placeholder="⬤⬤⬤⬤⬤⬤" 
+      [(ngModel)]="password">
+    </ion-input>
+  </ion-item>
+
+  <ion-item lines="none">
+    <ion-checkbox [(ngModel)]="showPassword"></ion-checkbox>
+    <ion-label class="ion-margin-start">Show Password</ion-label>
+  </ion-item>
+
+  <div class="ion-text-center ion-margin-top" style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+    
+    <ion-button *ngIf="!isSignUp" expand="block" color="success" style="width: 100%; max-width: 300px;" (click)="login()">LogIn</ion-button>
+    <ion-button *ngIf="isSignUp" expand="block" color="primary" style="width: 100%; max-width: 300px;" (click)="signup()">Sign Up</ion-button>
+
+    <p style="margin-top: 15px;">
+      <span *ngIf="!isSignUp">Don't have an account? </span>
+      <span *ngIf="isSignUp">Already have an account? </span>
+      <a href="#" (click)="$event.preventDefault(); toggleMode()" style="color: var(--ion-color-primary); cursor: pointer; text-decoration: underline;">
+        {{ isSignUp ? 'Log In' : 'Sign Up' }}
+      </a>
     </p>
+
   </div>
 </ion-content>
